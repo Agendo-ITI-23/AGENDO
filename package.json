@@ -1,0 +1,16 @@
+{
+  "name": "agendo",
+  "version": "1.0.0",
+  "description": "Sistema de reservas y gestión de citas",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"Backend,Frontend\" --prefix-colors \"blue,green\"",
+    "dev:backend": "cd backend/backend && php artisan serve",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend/backend && npm install && cd ../../frontend && npm install",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
