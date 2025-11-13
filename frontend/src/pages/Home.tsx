@@ -1,7 +1,16 @@
-import { Calendar, Clock, Users, Sparkles, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, Clock, Users, Sparkles, ArrowRight, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Home() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Header */}
@@ -14,13 +23,31 @@ export default function Home() {
                 AGENDO
               </span>
             </Link>
-            <div className="flex gap-3">
-              <Link to="/login" className="px-5 py-2.5 text-gray-700 font-medium hover:text-indigo-600 transition-colors">
-                Iniciar Sesión
-              </Link>
-              <Link to="/register" className="px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg">
-                Registrarse
-              </Link>
+            <div className="flex gap-3 items-center">
+              {user ? (
+                <>
+                  <Link to="/appointments" className="px-5 py-2.5 text-gray-700 font-medium hover:text-indigo-600 transition-colors">
+                    Mis Citas
+                  </Link>
+                  <span className="text-gray-600 hidden sm:inline">Hola, {user.name}</span>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-5 py-2.5 text-gray-700 font-medium hover:text-red-600 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Salir
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="px-5 py-2.5 text-gray-700 font-medium hover:text-indigo-600 transition-colors">
+                    Iniciar Sesión
+                  </Link>
+                  <Link to="/register" className="px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg">
+                    Registrarse
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>

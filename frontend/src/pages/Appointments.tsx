@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Calendar, Plus, Clock, User, Tag } from 'lucide-react';
+import { Calendar, Plus, Clock, User, Tag, LogOut, Home } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import AppointmentForm from '../components/AppointmentForm';
+import AppointmentDetails from '../components/AppointmentDetails';
 
 interface Service {
   id: number;
@@ -16,6 +20,7 @@ interface Customer {
   name: string;
   email: string;
   phone: string;
+  address?: string;
 }
 
 interface Appointment {
@@ -27,15 +32,25 @@ interface Appointment {
   service: Service;
 }
 
+type ModalType = 'none' | 'create' | 'edit' | 'details' | 'delete';
+
 export default function Appointments() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<ModalType>('none');
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
     loadAppointments();
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   const loadAppointments = async () => {
     try {
@@ -49,7 +64,47 @@ export default function Appointments() {
   };
 
   const handleNewAppointment = () => {
-    setShowModal(true);
+    setSelectedAppointment(null);
+    setModalType('create');
+  };
+
+  const handleViewDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setModalType('details');
+  };
+
+  const handleEdit = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setModalType('edit');
+  };
+
+  const handleDelete = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setModalType('delete');
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedAppointment) return;
+    
+    try {
+      await axios.delete(`/api/appointments/${selectedAppointment.id}`);
+      setModalType('none');
+      setSelectedAppointment(null);
+      loadAppointments();
+    } catch {
+      setError('Error al eliminar la cita');
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setModalType('none');
+    setSelectedAppointment(null);
+    loadAppointments();
+  };
+
+  const closeModal = () => {
+    setModalType('none');
+    setSelectedAppointment(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -88,23 +143,42 @@ export default function Appointments() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="w-full max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-16 xl:px-20 py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-indigo-100 rounded-xl">
                 <Calendar className="w-8 h-8 text-indigo-600" />
               </div>
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Mis Citas</h1>
-                <p className="text-sm lg:text-base text-gray-600">Gestiona tu agenda</p>
+                <p className="text-sm lg:text-base text-gray-600">
+                  Bienvenido, <span className="font-semibold text-indigo-600">{user?.name}</span>
+                </p>
               </div>
             </div>
-            <button 
-              onClick={handleNewAppointment}
-              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 w-full sm:w-auto justify-center"
-            >
-              <Plus className="w-5 h-5" />
-              Nueva Cita
-            </button>
+            <div className="flex gap-3 w-full lg:w-auto">
+              <Link
+                to="/"
+                className="flex items-center gap-2 px-5 py-3 text-gray-700 font-semibold border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all flex-1 lg:flex-initial justify-center"
+              >
+                <Home className="w-5 h-5" />
+                <span className="hidden sm:inline">Inicio</span>
+              </Link>
+              <button 
+                onClick={handleNewAppointment}
+                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 flex-1 lg:flex-initial justify-center"
+              >
+                <Plus className="w-5 h-5" />
+                Nueva Cita
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-5 py-3 text-red-600 font-semibold border-2 border-red-300 rounded-xl hover:bg-red-50 transition-all"
+                aria-label="Cerrar sesión"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="hidden xl:inline">Salir</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -133,21 +207,30 @@ export default function Appointments() {
         ) : (
           <div className="grid gap-6 md:gap-8 lg:gap-10 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 w-full">
             {appointments.map((appointment) => (
-              <AppointmentCard key={appointment.id} appointment={appointment} getStatusColor={getStatusColor} getStatusLabel={getStatusLabel} />
+              <AppointmentCard 
+                key={appointment.id} 
+                appointment={appointment} 
+                getStatusColor={getStatusColor} 
+                getStatusLabel={getStatusLabel}
+                onViewDetails={() => handleViewDetails(appointment)}
+                onEdit={() => handleEdit(appointment)}
+              />
             ))}
           </div>
         )}
       </main>
 
-      {/* Modal para nueva cita */}
-      {showModal && (
+      {/* Modal para crear/editar cita */}
+      {(modalType === 'create' || modalType === 'edit') && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Nueva Cita</h2>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {modalType === 'create' ? 'Nueva Cita' : 'Editar Cita'}
+                </h2>
                 <button 
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                   aria-label="Cerrar modal"
                 >
@@ -158,19 +241,80 @@ export default function Appointments() {
               </div>
             </div>
             <div className="p-6">
-              <p className="text-gray-600 mb-4">
-                Formulario de creación de citas - Próximamente
-              </p>
-              <div className="text-center py-8">
-                <Calendar className="w-16 h-16 text-indigo-600 mx-auto mb-4" />
-                <p className="text-gray-500">Esta funcionalidad estará disponible pronto</p>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-6 py-2.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+              <AppointmentForm
+                onSuccess={handleFormSuccess}
+                onCancel={closeModal}
+                appointmentId={selectedAppointment?.id}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de detalles */}
+      {modalType === 'details' && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Detalles de la Cita</h2>
+                <button 
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Cerrar modal"
                 >
-                  Cerrar
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <AppointmentDetails
+                appointment={selectedAppointment}
+                onClose={closeModal}
+                onEdit={() => {
+                  setModalType('edit');
+                }}
+                onDelete={() => {
+                  setModalType('delete');
+                }}
+                getStatusColor={getStatusColor}
+                getStatusLabel={getStatusLabel}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      {modalType === 'delete' && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                ¿Eliminar cita?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Esta acción no se puede deshacer. La cita con {selectedAppointment.customer.name} será eliminada permanentemente.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={closeModal}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  Eliminar
                 </button>
               </div>
             </div>
@@ -185,9 +329,11 @@ interface AppointmentCardProps {
   appointment: Appointment;
   getStatusColor: (status: string) => string;
   getStatusLabel: (status: string) => string;
+  onViewDetails: () => void;
+  onEdit: () => void;
 }
 
-function AppointmentCard({ appointment, getStatusColor, getStatusLabel }: AppointmentCardProps) {
+function AppointmentCard({ appointment, getStatusColor, getStatusLabel, onViewDetails, onEdit }: AppointmentCardProps) {
   const date = new Date(appointment.appointment_date);
   
   return (
@@ -245,10 +391,16 @@ function AppointmentCard({ appointment, getStatusColor, getStatusLabel }: Appoin
       </div>
       
       <div className="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-200">
-        <button className="flex-1 px-4 py-2.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all border-2 border-indigo-200 hover:border-indigo-300">
+        <button 
+          onClick={onViewDetails}
+          className="flex-1 px-4 py-2.5 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all border-2 border-indigo-200 hover:border-indigo-300"
+        >
           Ver detalles
         </button>
-        <button className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-all border-2 border-gray-200 hover:border-gray-300">
+        <button 
+          onClick={onEdit}
+          className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-all border-2 border-gray-200 hover:border-gray-300"
+        >
           Editar
         </button>
       </div>

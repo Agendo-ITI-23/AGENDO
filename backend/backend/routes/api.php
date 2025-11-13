@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\AuthController;
 
 // Ruta de health check para verificar que la API está funcionando
 Route::get('/health', function () {
@@ -15,28 +16,38 @@ Route::get('/health', function () {
     ]);
 });
 
+// Rutas de autenticación (públicas)
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
 // Rutas públicas
 Route::prefix('public')->group(function () {
     // Servicios activos (para vista pública)
     Route::get('/services', [ServiceController::class, 'active']);
 });
 
-// Rutas del CRUD de Clientes
-Route::apiResource('customers', CustomerController::class);
+// Rutas protegidas (requieren autenticación)
+Route::middleware('auth:sanctum')->group(function () {
+    // Autenticación
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/user', [AuthController::class, 'user']);
+    });
 
-// Rutas del CRUD de Servicios
-Route::apiResource('services', ServiceController::class);
+    // Rutas del CRUD de Clientes
+    Route::apiResource('customers', CustomerController::class);
 
-// Rutas del CRUD de Citas
-Route::apiResource('appointments', AppointmentController::class);
+    // Rutas del CRUD de Servicios
+    Route::apiResource('services', ServiceController::class);
 
-// Rutas adicionales para citas
-Route::prefix('appointments')->group(function () {
-    Route::get('/upcoming/list', [AppointmentController::class, 'upcoming']);
-    Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
-});
+    // Rutas del CRUD de Citas
+    Route::apiResource('appointments', AppointmentController::class);
 
-// Ruta de prueba que requiere autenticación (ejemplo)
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    // Rutas adicionales para citas
+    Route::prefix('appointments')->group(function () {
+        Route::get('/upcoming/list', [AppointmentController::class, 'upcoming']);
+        Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
+    });
 });
