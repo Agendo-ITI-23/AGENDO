@@ -91,6 +91,8 @@ Desarrollar una aplicación web robusta y escalable que simplifique el proceso d
 
 ### DevOps
 - **Git** - Control de versiones
+- **GitHub Actions** - CI/CD pipeline
+- **GitHub Pages** - Hosting del frontend
 - **npm** - Gestión de paquetes
 - **Composer** - Gestión de dependencias PHP
 
@@ -154,6 +156,28 @@ Desarrollar una aplicación web robusta y escalable que simplifique el proceso d
    - Backend: http://localhost:8000
    - API Health: http://localhost:8000/api/health
 
+### Deployment a Producción
+
+Para desplegar la aplicación a GitHub Pages:
+
+1. **Configurar GitHub Pages**
+   - Ve a Settings → Pages en tu repositorio
+   - Selecciona Source: "GitHub Actions"
+
+2. **Agregar secreto VITE_API_URL**
+   - Settings → Secrets and variables → Actions
+   - New repository secret: `VITE_API_URL` con la URL de tu backend
+
+3. **Push a main para desplegar**
+   ```bash
+   git push origin main
+   ```
+
+4. **Acceder a la aplicación desplegada**
+   - URL: https://Agendo-ITI-23.github.io/AGENDO/
+
+Para más detalles, consulta la [guía de deployment](.github/DEPLOY.md).
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -192,6 +216,10 @@ La documentación completa del proyecto está disponible en la carpeta `docs/`:
 - 🚀 **[INICIALIZACION.md](docs/INICIALIZACION.md)** - Guía de inicialización del proyecto
 - 🪟 **[INICIO-WINDOWS.md](docs/INICIO-WINDOWS.md)** - Instrucciones específicas para Windows
 - ✅ **[RESUMEN-CONFIG.md](docs/RESUMEN-CONFIG.md)** - Resumen de la configuración actual
+
+### Deployment
+- 🚀 **[DEPLOY.md](.github/DEPLOY.md)** - Guía de deployment a GitHub Pages
+- ⚙️ **[SETUP.md](.github/SETUP.md)** - Configuración de GitHub Pages paso a paso
 
 ### Planificación
 - 📋 **[plan.md](docs/plan.md)** - Plan del proyecto y roadmap
@@ -235,19 +263,24 @@ La documentación completa del proyecto está disponible en la carpeta `docs/`:
 
 ## 🗺️ Roadmap
 
-### Fase 1: MVP (En Desarrollo) ✅
+### Fase 1: MVP (Completado) ✅
 - [x] Configuración inicial del proyecto
 - [x] Estructura backend y frontend
 - [x] Conexión Laravel + React
-- [ ] Sistema de autenticación
-- [ ] CRUD básico de citas
-- [ ] CRUD de servicios
+- [x] Sistema de autenticación
+- [x] CRUD básico de citas
+- [x] CRUD de servicios
+- [x] CRUD de clientes
+- [x] Sistema multiusuario
+- [x] Dashboard administrativo
+- [x] Menu móvil responsive
+- [x] GitHub Pages deployment
 
 ### Fase 2: Funcionalidades Core
 - [ ] Calendario interactivo
 - [ ] Sistema de notificaciones
-- [ ] Dashboard administrativo
 - [ ] Gestión de usuarios avanzada
+- [ ] Filtros y búsqueda avanzada
 
 ### Fase 3: Integraciones
 - [ ] Integración con Twilio (SMS)
@@ -288,19 +321,13 @@ npm run preview          # Previsualizar build
 npm run lint             # Linter
 ```
 
-## 🤝 Contribución
+### Deployment
+El deployment a GitHub Pages se ejecuta automáticamente al hacer push a `main`. También puedes:
+```bash
+# Ejecutar manualmente desde GitHub Actions
+# Settings → Actions → Deploy to GitHub Pages → Run workflow
+```
 
-Este es un proyecto académico del ITI-23. Para contribuir:
-
-1. Crea un branch desde `main`
-2. Realiza tus cambios
-3. Asegúrate de que las pruebas pasen
-4. Envía un Pull Request
-5. Espera la revisión del equipo
-
-## 📄 Licencia
-
-Este proyecto es parte del curso ITI-23 y es solo para fines educativos.
 
 ## 📞 Contacto
 
@@ -314,6 +341,6 @@ Para más información sobre el proyecto, contacta al equipo:
 
 **🎯 AGENDO** - Sistema de Gestión de Citas
 
-Hecho con ❤️ por el equipo ITI-23
+Hecho con ❤️ por el equipo AGENDO
 
 </div>
