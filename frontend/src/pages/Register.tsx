@@ -16,20 +16,67 @@ export default function Register() {
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(false);
 
+  const validateForm = () => {
+    const newErrors: Record<string, string[]> = {};
+    
+    // Validar nombre: solo letras y espacios
+    if (!formData.name.trim()) {
+      newErrors.name = ['El nombre es requerido'];
+    } else if (!/^[\p{L}\s]+$/u.test(formData.name)) {
+      newErrors.name = ['El nombre solo debe contener letras y espacios'];
+    } else if (formData.name.length > 255) {
+      newErrors.name = ['El nombre no debe exceder 255 caracteres'];
+    }
+    
+    // Validar email
+    if (!formData.email.trim()) {
+      newErrors.email = ['El email es requerido'];
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = ['El formato del email no es válido'];
+    } else if (formData.email.length > 255) {
+      newErrors.email = ['El email no debe exceder 255 caracteres'];
+    }
+    
+    // Validar contraseña: mínimo 8 caracteres, debe contener mayúscula, minúscula y número
+    if (!formData.password) {
+      newErrors.password = ['La contraseña es requerida'];
+    } else if (formData.password.length < 8) {
+      newErrors.password = ['La contraseña debe tener al menos 8 caracteres'];
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = ['La contraseña debe contener al menos una mayúscula, una minúscula y un número'];
+    }
+    
+    // Validar confirmación de contraseña
+    if (formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation = ['Las contraseñas no coinciden'];
+    }
+    
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setErrors({});
     setLoading(true);
 
+    // Validación del lado del cliente
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
+
     try {
       await register(formData.name, formData.email, formData.password, formData.password_confirmation);
-      navigate('/appointments');
-    } catch (err: any) {
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
+      navigate('/dashboard');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { errors?: Record<string, string[]>; message?: string } } };
+      if (axiosError.response?.data?.errors) {
+        setErrors(axiosError.response.data.errors);
+      } else if (axiosError.response?.data?.message) {
+        setError(axiosError.response.data.message);
       } else {
         setError('Error al registrar. Por favor intenta nuevamente.');
       }
@@ -119,6 +166,9 @@ export default function Register() {
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">{errors.password[0]}</p>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                Debe contener al menos 8 caracteres, una mayúscula, una minúscula y un número
+              </p>
             </div>
 
             {/* Confirmar Contraseña */}
@@ -135,6 +185,9 @@ export default function Register() {
                 placeholder="Confirma tu contraseña"
                 required
               />
+              {errors.password_confirmation && (
+                <p className="text-red-500 text-sm mt-1">{errors.password_confirmation[0]}</p>
+              )}
             </div>
 
             {/* Botón Submit */}

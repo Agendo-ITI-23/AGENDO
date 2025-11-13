@@ -67,12 +67,24 @@ export default function AppointmentForm({ onSuccess, onCancel, appointmentId }: 
     try {
       const response = await axios.get(`/api/appointments/${appointmentId}`);
       const appointment = response.data.data;
-      const dateTime = new Date(appointment.appointment_date);
+      
+      // Extraer fecha y hora de forma segura
+      let datePart = '';
+      let timePart = '';
+      
+      if (appointment.appointment_date && 
+          typeof appointment.appointment_date === 'string' && 
+          appointment.appointment_date.includes(' ')) {
+        const parts = appointment.appointment_date.split(' ');
+        datePart = parts[0] || '';
+        timePart = parts[1] ? parts[1].slice(0, 5) : '';
+      }
+      
       setFormData({
         customer_id: appointment.customer_id.toString(),
         service_id: appointment.service_id.toString(),
-        appointment_date: dateTime.toISOString().split('T')[0],
-        appointment_time: dateTime.toTimeString().slice(0, 5),
+        appointment_date: datePart,
+        appointment_time: timePart,
         status: appointment.status,
         notes: appointment.notes || ''
       });
@@ -81,10 +93,63 @@ export default function AppointmentForm({ onSuccess, onCancel, appointmentId }: 
     }
   };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    // Validar cliente
+    if (!formData.customer_id) {
+      newErrors.customer_id = 'Debe seleccionar un cliente';
+    }
+    
+    // Validar servicio
+    if (!formData.service_id) {
+      newErrors.service_id = 'Debe seleccionar un servicio';
+    }
+    
+    // Validar fecha
+    if (!formData.appointment_date) {
+      newErrors.appointment_date = 'La fecha es requerida';
+    } else {
+      // Crear fecha sin conversión de zona horaria
+      const [year, month, day] = formData.appointment_date.split('-').map(Number);
+      const [hours, minutes] = (formData.appointment_time || '00:00').split(':').map(Number);
+      const selectedDate = new Date(year, month - 1, day, hours, minutes);
+      const now = new Date();
+      const oneYearFromNow = new Date();
+      oneYearFromNow.setFullYear(now.getFullYear() + 1);
+      
+      if (selectedDate < now) {
+        newErrors.appointment_date = 'La fecha debe ser futura';
+      } else if (selectedDate > oneYearFromNow) {
+        newErrors.appointment_date = 'La fecha no puede ser más de un año en el futuro';
+      }
+    }
+    
+    // Validar hora
+    if (!formData.appointment_time) {
+      newErrors.appointment_time = 'La hora es requerida';
+    }
+    
+    // Validar notas (opcional)
+    if (formData.notes && formData.notes.length > 1000) {
+      newErrors.notes = 'Las notas no deben exceder 1000 caracteres';
+    }
+    
+    return newErrors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
+
+    // Validación del lado del cliente
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
 
     try {
       const appointmentDateTime = `${formData.appointment_date} ${formData.appointment_time}:00`;
@@ -103,11 +168,12 @@ export default function AppointmentForm({ onSuccess, onCancel, appointmentId }: 
       }
       
       onSuccess();
-    } catch (error: any) {
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { errors?: Record<string, string>; message?: string } } };
+      if (axiosError.response?.data?.errors) {
+        setErrors(axiosError.response.data.errors);
       } else {
-        setErrors({ general: 'Error al guardar la cita' });
+        setErrors({ general: axiosError.response?.data?.message || 'Error al guardar la cita' });
       }
     } finally {
       setLoading(false);

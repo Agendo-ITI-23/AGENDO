@@ -14,9 +14,9 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
+                'name' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\s]+$/u'],
+                'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
             ]);
 
             $user = User::create([
@@ -52,8 +52,8 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'email' => 'required|email',
-                'password' => 'required',
+                'email' => ['required', 'string', 'email:rfc', 'max:255'],
+                'password' => ['required', 'string'],
             ]);
 
             $user = User::where('email', $validated['email'])->first();

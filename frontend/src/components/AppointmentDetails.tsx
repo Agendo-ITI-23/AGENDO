@@ -42,7 +42,20 @@ export default function AppointmentDetails({
   getStatusColor,
   getStatusLabel 
 }: AppointmentDetailsProps) {
-  const date = new Date(appointment.appointment_date);
+  // Parsear fecha sin conversión de zona horaria de forma segura
+  let date: Date;
+  try {
+    if (appointment.appointment_date && typeof appointment.appointment_date === 'string' && appointment.appointment_date.includes(' ')) {
+      const [datePart, timePart] = appointment.appointment_date.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      date = new Date(year, month - 1, day, hours, minutes);
+    } else {
+      date = new Date();
+    }
+  } catch {
+    date = new Date();
+  }
 
   return (
     <div className="space-y-6">

@@ -4,7 +4,10 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Dashboard from './pages/Dashboard'
 import Appointments from './pages/Appointments'
+import Services from './pages/Services'
+import Customers from './pages/Customers'
 
 function App() {
   return (
@@ -19,10 +22,34 @@ function App() {
           
           {/* Rutas protegidas */}
           <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/appointments" 
             element={
               <ProtectedRoute>
                 <Appointments />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services" 
+            element={
+              <ProtectedRoute>
+                <Services />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/customers" 
+            element={
+              <ProtectedRoute>
+                <Customers />
               </ProtectedRoute>
             } 
           />

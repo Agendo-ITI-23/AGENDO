@@ -26,16 +26,19 @@ export default function Home() {
             <div className="flex gap-3 items-center">
               {user ? (
                 <>
-                  <Link to="/appointments" className="px-5 py-2.5 text-gray-700 font-medium hover:text-indigo-600 transition-colors">
-                    Mis Citas
-                  </Link>
                   <span className="text-gray-600 hidden sm:inline">Hola, {user.name}</span>
+                  <Link 
+                    to="/dashboard" 
+                    className="px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg"
+                  >
+                    Ir al Dashboard
+                  </Link>
                   <button 
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-5 py-2.5 text-gray-700 font-medium hover:text-red-600 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    Salir
+                    <span className="hidden sm:inline">Salir</span>
                   </button>
                 </>
               ) : (
@@ -75,19 +78,31 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center max-w-xl mx-auto">
-              <Link 
-                to="/appointments" 
-                className="group inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 w-full sm:w-auto justify-center"
-              >
-                Comenzar ahora
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                to="/about" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl w-full sm:w-auto justify-center border-2 border-gray-200"
-              >
-                Conocer más
-              </Link>
+              {user ? (
+                <Link 
+                  to="/dashboard" 
+                  className="group inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 w-full sm:w-auto justify-center"
+                >
+                  Ir al Dashboard
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <>
+                  <Link 
+                    to="/register" 
+                    className="group inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 w-full sm:w-auto justify-center"
+                  >
+                    Comenzar ahora
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link 
+                    to="/about" 
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl w-full sm:w-auto justify-center border-2 border-gray-200"
+                  >
+                    Conocer más
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

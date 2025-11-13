@@ -13,9 +13,12 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $customers = Customer::with('appointments')->latest()->get();
+        $customers = Customer::where('user_id', $request->user()->id)
+            ->with('appointments')
+            ->latest()
+            ->get();
         
         return response()->json([
             'success' => true,
@@ -30,12 +33,13 @@ class CustomerController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:customers,email',
-                'phone' => 'required|string|max:20',
-                'address' => 'nullable|string',
+                'name' => ['required', 'string', 'max:255', 'regex:/^[\p{L}\s]+$/u'],
+                'email' => ['required', 'email:rfc,dns', 'unique:customers,email', 'max:255'],
+                'phone' => ['required', 'string', 'regex:/^[0-9\s\-\+\(\)]+$/', 'min:10', 'max:20'],
+                'address' => 'nullable|string|max:500',
             ]);
 
+            $validated['user_id'] = $request->user()->id;
             $customer = Customer::create($validated);
 
             return response()->json([
@@ -55,9 +59,11 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $customer = Customer::with('appointments.service')->find($id);
+        $customer = Customer::where('user_id', $request->user()->id)
+            ->with('appointments.service')
+            ->find($id);
 
         if (!$customer) {
             return response()->json([
@@ -77,7 +83,7 @@ class CustomerController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $customer = Customer::find($id);
+        $customer = Customer::where('user_id', $request->user()->id)->find($id);
 
         if (!$customer) {
             return response()->json([
@@ -88,10 +94,10 @@ class CustomerController extends Controller
 
         try {
             $validated = $request->validate([
-                'name' => 'sometimes|required|string|max:255',
-                'email' => 'sometimes|required|email|unique:customers,email,' . $id,
-                'phone' => 'sometimes|required|string|max:20',
-                'address' => 'nullable|string',
+                'name' => ['sometimes', 'required', 'string', 'max:255', 'regex:/^[\p{L}\s]+$/u'],
+                'email' => ['sometimes', 'required', 'email:rfc,dns', 'unique:customers,email,' . $id, 'max:255'],
+                'phone' => ['sometimes', 'required', 'string', 'regex:/^[0-9\s\-\+\(\)]+$/', 'min:10', 'max:20'],
+                'address' => 'nullable|string|max:500',
             ]);
 
             $customer->update($validated);
@@ -113,15 +119,23 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $customer = Customer::find($id);
+        $customer = Customer::where('user_id', $request->user()->id)->find($id);
 
         if (!$customer) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cliente no encontrado',
             ], 404);
+        }
+
+        // Verificar si el cliente tiene citas asociadas
+        if ($customer->appointments()->count() > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede eliminar el cliente porque tiene citas asociadas. Elimine las citas primero.',
+            ], 422);
         }
 
         $customer->delete();

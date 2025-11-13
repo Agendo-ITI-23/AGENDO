@@ -42,12 +42,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rutas del CRUD de Servicios
     Route::apiResource('services', ServiceController::class);
 
+    // Rutas adicionales para citas (deben ir ANTES del apiResource)
+    Route::get('appointments/upcoming', [AppointmentController::class, 'upcoming']);
+    Route::patch('appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
+    
     // Rutas del CRUD de Citas
     Route::apiResource('appointments', AppointmentController::class);
-
-    // Rutas adicionales para citas
-    Route::prefix('appointments')->group(function () {
-        Route::get('/upcoming/list', [AppointmentController::class, 'upcoming']);
-        Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
-    });
 });

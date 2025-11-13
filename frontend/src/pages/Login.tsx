@@ -20,7 +20,7 @@ export default function Login() {
 
     try {
       await login(formData.email, formData.password);
-      navigate('/appointments');
+      navigate('/dashboard');
     } catch (err: any) {
       if (err.response?.data?.message) {
         setError(err.response.data.message);

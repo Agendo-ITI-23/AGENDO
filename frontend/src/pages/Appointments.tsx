@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Calendar, Plus, Clock, User, Tag, LogOut, Home } from 'lucide-react';
+import { Calendar, Plus, Clock, User, Tag, LogOut, Home, Users } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AppointmentForm from '../components/AppointmentForm';
 import AppointmentDetails from '../components/AppointmentDetails';
+import MobileMenu from '../components/MobileMenu';
 
 interface Service {
   id: number;
@@ -155,13 +156,28 @@ export default function Appointments() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 w-full lg:w-auto">
+            <div className="flex gap-3 w-full lg:w-auto items-center">
+              <MobileMenu />
               <Link
-                to="/"
+                to="/dashboard"
                 className="flex items-center gap-2 px-5 py-3 text-gray-700 font-semibold border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-all flex-1 lg:flex-initial justify-center"
               >
                 <Home className="w-5 h-5" />
                 <span className="hidden sm:inline">Inicio</span>
+              </Link>
+              <Link
+                to="/services"
+                className="hidden xl:flex items-center gap-2 px-5 py-3 text-purple-600 font-semibold border-2 border-purple-300 rounded-xl hover:bg-purple-50 transition-all"
+              >
+                <Tag className="w-5 h-5" />
+                Servicios
+              </Link>
+              <Link
+                to="/customers"
+                className="hidden xl:flex items-center gap-2 px-5 py-3 text-teal-600 font-semibold border-2 border-teal-300 rounded-xl hover:bg-teal-50 transition-all"
+              >
+                <Users className="w-5 h-5" />
+                Clientes
               </Link>
               <button 
                 onClick={handleNewAppointment}
@@ -334,7 +350,20 @@ interface AppointmentCardProps {
 }
 
 function AppointmentCard({ appointment, getStatusColor, getStatusLabel, onViewDetails, onEdit }: AppointmentCardProps) {
-  const date = new Date(appointment.appointment_date);
+  // Parsear fecha sin conversión de zona horaria de forma segura
+  let date: Date;
+  try {
+    if (appointment.appointment_date && typeof appointment.appointment_date === 'string' && appointment.appointment_date.includes(' ')) {
+      const [datePart, timePart] = appointment.appointment_date.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      date = new Date(year, month - 1, day, hours, minutes);
+    } else {
+      date = new Date();
+    }
+  } catch {
+    date = new Date();
+  }
   
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-200 hover:border-indigo-300 overflow-hidden flex flex-col h-full">

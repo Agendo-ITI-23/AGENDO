@@ -15,7 +15,8 @@ class AppointmentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Appointment::with(['customer', 'service', 'user']);
+        $query = Appointment::with(['customer', 'service', 'user'])
+            ->where('user_id', $request->user()->id);
 
         // Filter by status if provided
         if ($request->has('status')) {
@@ -41,9 +42,10 @@ class AppointmentController extends Controller
     /**
      * Get upcoming appointments.
      */
-    public function upcoming(): JsonResponse
+    public function upcoming(Request $request): JsonResponse
     {
         $appointments = Appointment::with(['customer', 'service', 'user'])
+            ->where('user_id', $request->user()->id)
             ->where('appointment_date', '>=', now())
             ->whereIn('status', ['pending', 'confirmed'])
             ->orderBy('appointment_date', 'asc')
@@ -62,14 +64,14 @@ class AppointmentController extends Controller
     {
         try {
             $validated = $request->validate([
-                'customer_id' => 'required|exists:customers,id',
-                'service_id' => 'required|exists:services,id',
-                'user_id' => 'nullable|exists:users,id',
-                'appointment_date' => 'required|date|after:now',
+                'customer_id' => ['required', 'integer', 'exists:customers,id'],
+                'service_id' => ['required', 'integer', 'exists:services,id'],
+                'appointment_date' => ['required', 'date', 'after:now', 'before:' . now()->addYear()],
                 'status' => 'sometimes|in:pending,confirmed,cancelled,completed',
-                'notes' => 'nullable|string',
+                'notes' => 'nullable|string|max:1000',
             ]);
 
+            $validated['user_id'] = $request->user()->id;
             $appointment = Appointment::create($validated);
             $appointment->load(['customer', 'service', 'user']);
 
@@ -90,9 +92,11 @@ class AppointmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $appointment = Appointment::with(['customer', 'service', 'user'])->find($id);
+        $appointment = Appointment::where('user_id', $request->user()->id)
+            ->with(['customer', 'service', 'user'])
+            ->find($id);
 
         if (!$appointment) {
             return response()->json([
@@ -112,7 +116,7 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $appointment = Appointment::find($id);
+        $appointment = Appointment::where('user_id', $request->user()->id)->find($id);
 
         if (!$appointment) {
             return response()->json([
@@ -123,12 +127,12 @@ class AppointmentController extends Controller
 
         try {
             $validated = $request->validate([
-                'customer_id' => 'sometimes|required|exists:customers,id',
-                'service_id' => 'sometimes|required|exists:services,id',
-                'user_id' => 'nullable|exists:users,id',
-                'appointment_date' => 'sometimes|required|date',
+                'customer_id' => ['sometimes', 'required', 'integer', 'exists:customers,id'],
+                'service_id' => ['sometimes', 'required', 'integer', 'exists:services,id'],
+                'user_id' => ['nullable', 'integer', 'exists:users,id'],
+                'appointment_date' => ['sometimes', 'required', 'date', 'before:' . now()->addYear()],
                 'status' => 'sometimes|in:pending,confirmed,cancelled,completed',
-                'notes' => 'nullable|string',
+                'notes' => 'nullable|string|max:1000',
             ]);
 
             $appointment->update($validated);
@@ -153,7 +157,7 @@ class AppointmentController extends Controller
      */
     public function updateStatus(Request $request, string $id): JsonResponse
     {
-        $appointment = Appointment::find($id);
+        $appointment = Appointment::where('user_id', $request->user()->id)->find($id);
 
         if (!$appointment) {
             return response()->json([
@@ -187,9 +191,9 @@ class AppointmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $appointment = Appointment::find($id);
+        $appointment = Appointment::where('user_id', $request->user()->id)->find($id);
 
         if (!$appointment) {
             return response()->json([
