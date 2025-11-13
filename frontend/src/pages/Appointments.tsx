@@ -79,11 +79,6 @@ export default function Appointments() {
     setModalType('edit');
   };
 
-  const handleDelete = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setModalType('delete');
-  };
-
   const confirmDelete = async () => {
     if (!selectedAppointment) return;
     
