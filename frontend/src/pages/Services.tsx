@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Tag, Briefcase, Plus, DollarSign, Clock, LogOut, Home, Edit, Trash2, CheckCircle, XCircle, Calendar, Users } from 'lucide-react';
+import { Tag, Plus, DollarSign, Clock, LogOut, Home, Edit, Trash2, CheckCircle, XCircle, Calendar, Users } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ServiceForm from '../components/ServiceForm';
@@ -141,10 +141,11 @@ export default function Services() {
               </Link>
               <button 
                 onClick={handleNewService}
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 flex-1 lg:flex-initial justify-center"
+                className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 flex-1 lg:flex-initial justify-center"
               >
                 <Plus className="w-5 h-5" />
-                Nuevo Servicio
+                <span className="hidden sm:inline">Nuevo Servicio</span>
+                <span className="sm:hidden">Nuevo</span>
               </button>
               <button
                 onClick={handleLogout}
@@ -196,7 +197,7 @@ export default function Services() {
 
       {/* Modal crear/editar */}
       {(modalType === 'create' || modalType === 'edit') && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -227,7 +228,7 @@ export default function Services() {
 
       {/* Modal de confirmación de eliminación */}
       {modalType === 'delete' && selectedService && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">

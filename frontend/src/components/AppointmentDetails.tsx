@@ -63,11 +63,11 @@ export default function AppointmentDetails({
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div>
           <h3 className="text-2xl font-bold text-gray-900">Detalles de la Cita</h3>
-          <p className="text-sm text-gray-500 mt-1">ID: #{appointment.id}</p>
         </div>
         <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(appointment.status)}`}>
           {getStatusLabel(appointment.status)}
         </span>
+        
       </div>
 
       {/* Información del Cliente */}

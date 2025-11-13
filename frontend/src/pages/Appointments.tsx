@@ -181,10 +181,11 @@ export default function Appointments() {
               </Link>
               <button 
                 onClick={handleNewAppointment}
-                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 flex-1 lg:flex-initial justify-center"
+                className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 flex-1 lg:flex-initial justify-center"
               >
                 <Plus className="w-5 h-5" />
-                Nueva Cita
+                <span className="hidden sm:inline">Nueva Cita</span>
+                <span className="sm:hidden">Nueva</span>
               </button>
               <button
                 onClick={handleLogout}
@@ -238,7 +239,7 @@ export default function Appointments() {
 
       {/* Modal para crear/editar cita */}
       {(modalType === 'create' || modalType === 'edit') && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -269,22 +270,8 @@ export default function Appointments() {
 
       {/* Modal de detalles */}
       {modalType === 'details' && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Detalles de la Cita</h2>
-                <button 
-                  onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label="Cerrar modal"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
             <div className="p-6">
               <AppointmentDetails
                 appointment={selectedAppointment}
@@ -305,7 +292,7 @@ export default function Appointments() {
 
       {/* Modal de confirmación de eliminación */}
       {modalType === 'delete' && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">

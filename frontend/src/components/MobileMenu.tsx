@@ -30,7 +30,7 @@ export default function MobileMenu() {
       {isOpen && (
         <div
           onClick={closeMenu}
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 xl:hidden"
+          className="fixed inset-0 bg-opacity-30 backdrop-blur-sm z-40 xl:hidden"
         />
       )}
 
