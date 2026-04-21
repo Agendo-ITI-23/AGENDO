@@ -51,8 +51,6 @@ export default function OwnerAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [statusModal, setStatusModal] = useState<Appointment | null>(null);
-  const [newStatus, setNewStatus] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => { loadAppointments(); }, []);
@@ -68,18 +66,6 @@ export default function OwnerAppointments() {
   };
 
   useEffect(() => { loadAppointments(); }, [filter]);
-
-  const handleUpdateStatus = async () => {
-    if (!statusModal || !newStatus) return;
-    try {
-      await axios.patch(`/api/owner/appointments/${statusModal.id}/status`, { status: newStatus });
-      setStatusModal(null);
-      loadAppointments();
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? 'Error al actualizar');
-      setStatusModal(null);
-    }
-  };
 
   const quickActions = (appt: Appointment) => {
     const actions = [];

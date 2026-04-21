@@ -4,7 +4,7 @@ import { Tag, DollarSign, Clock, FileText, AlertCircle } from 'lucide-react';
 interface Service {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   price: string;
   duration_minutes: number;
   is_active: boolean;
