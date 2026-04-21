@@ -17,21 +17,29 @@ class Customer extends Model
         'phone',
         'address',
         'user_id',
+        'linked_user_id',
     ];
 
-    /**
-     * Get the appointments for the customer.
-     */
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
     }
 
-    /**
-     * Get the user that owns the customer.
-     */
+    // El business_owner que administra este cliente
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // La cuenta de usuario del cliente (rol=customer) vinculada a este registro
+    public function linkedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'linked_user_id');
+    }
+
+    // Alias para mantener compatibilidad con código existente
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->owner();
     }
 }
