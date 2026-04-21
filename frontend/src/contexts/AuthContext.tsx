@@ -1,17 +1,35 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import axios from 'axios';
 
-interface User {
+export type Role = 'admin' | 'business_owner' | 'customer';
+
+export interface User {
   id: number;
   name: string;
   email: string;
+  role: Role;
+  business_name?: string;
+  business_description?: string;
+  phone?: string;
+  address?: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  role: 'business_owner' | 'customer';
+  business_name?: string;
+  phone?: string;
+  address?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, passwordConfirmation: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (data: RegisterData) => Promise<User>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -36,8 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await axios.get('/api/auth/user');
       setUser(response.data.data.user);
-    } catch (error) {
-      console.error('Error al cargar usuario:', error);
+    } catch {
       setToken(null);
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
@@ -46,36 +63,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const response = await axios.post('/api/auth/login', { email, password });
-    const { user: userData, token: authToken } = response.data.data;
-    
+  const saveSession = (userData: User, authToken: string) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('token', authToken);
     axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
   };
 
-  const register = async (name: string, email: string, password: string, passwordConfirmation: string) => {
-    const response = await axios.post('/api/auth/register', {
-      name,
-      email,
-      password,
-      password_confirmation: passwordConfirmation,
-    });
+  const login = async (email: string, password: string): Promise<User> => {
+    const response = await axios.post('/api/auth/login', { email, password });
     const { user: userData, token: authToken } = response.data.data;
-    
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('token', authToken);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    saveSession(userData, authToken);
+    return userData;
+  };
+
+  const register = async (data: RegisterData): Promise<User> => {
+    const response = await axios.post('/api/auth/register', data);
+    const { user: userData, token: authToken } = response.data.data;
+    saveSession(userData, authToken);
+    return userData;
   };
 
   const logout = async () => {
     try {
       await axios.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+    } catch {
+      // token ya expirado, ignorar error
     } finally {
       setUser(null);
       setToken(null);
@@ -93,8 +106,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
+}
+
+export function getRoleDashboard(role: Role): string {
+  if (role === 'admin') return '/dashboard';
+  if (role === 'business_owner') return '/owner/dashboard';
+  return '/client/dashboard';
 }

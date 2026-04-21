@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\AdminAppointmentController;
 use App\Http\Controllers\Api\Owner\OwnerServiceController;
 use App\Http\Controllers\Api\Owner\OwnerAppointmentController;
 use App\Http\Controllers\Api\Owner\OwnerCustomerController;
+use App\Http\Controllers\Api\Owner\OwnerProfileController;
 
 // Client
 use App\Http\Controllers\Api\Client\ClientProfileController;
@@ -88,6 +89,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── BUSINESS OWNER ─────────────────────────
     // Vista propia: filtrada por user_id del owner
     Route::prefix('owner')->middleware('role:business_owner')->group(function () {
+        Route::get('/profile',   [OwnerProfileController::class, 'show']);
+        Route::patch('/profile', [OwnerProfileController::class, 'update']);
+
         Route::apiResource('services', OwnerServiceController::class);
 
         Route::get('appointments/upcoming',      [OwnerAppointmentController::class, 'upcoming']);
